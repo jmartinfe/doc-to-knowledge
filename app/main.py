@@ -3,7 +3,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.concurrency import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from app.api.routes import router as stream_router
+from app.api.routes import router as doctoapi_router
 from app.core.exceptions import AppError
 from app.core.logging import init_logging, get_logger
 from dotenv import load_dotenv
@@ -15,15 +15,14 @@ logger = get_logger(__name__) # Initialize the logger
 rate_limiter = RateLimiter(max_requests=30, time_window=60) # Initialize the rate limiter
 
 IS_PRODUCTION = os.getenv("ENVIRONMENT", "production").lower() == "production"
-APP_TITLE = os.getenv("APP_TITLE", "Stream Agent API")
+APP_TITLE = os.getenv("APP_TITLE", "Document to Knowledge API")
 
 app = FastAPI(
     title=APP_TITLE,
-    description="API for streaming responses from a language model based on user input.",
+    description="API for converting documents to knowledge.",
     version="0.1.0",
     docs_url="/docs" if not IS_PRODUCTION else None,
     redoc_url="/redoc" if not IS_PRODUCTION else None,
-    openapi_url="/openapi.json" if not IS_PRODUCTION else None
 )
 
 @app.middleware("http")
@@ -42,9 +41,9 @@ async def app_error_handler(request: Request, exc: AppError):
 # Define lifespan events for startup and shutdown
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Stream Agent API startup complete")
+    logger.info("Document to Knowledge API startup complete")
     yield
-    logger.info("Stream Agent API shutdown")
+    logger.info("Document to Knowledge API shutdown")
 
 # Set up CORS middleware
 allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "*")
@@ -70,7 +69,7 @@ async def check_referer(request: Request, call_next):
     return await call_next(request)
 
 # Include the tracker router
-app.include_router(stream_router)
+app.include_router(doctoapi_router)
 
 # Include the tracker router
-app.include_router(stream_router)
+app.include_router(doctoapi_router)
