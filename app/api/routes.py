@@ -1,9 +1,10 @@
 import os
-from fastapi import Security, Depends, HTTPException, status
+from fastapi import Security, Depends, HTTPException, status, File, UploadFile
 from uuid import uuid4
 from fastapi import APIRouter, HTTPException
 from fastapi.security import APIKeyHeader
 from app.core.logging import get_logger
+from app.services.document import process_document
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/doctoapi", tags=["Document to Knowledge API"])
@@ -46,3 +47,13 @@ async def health_check():
     """
     logger.info("Health check requested")
     return {"status": "ok", "message": "API is running"}
+
+@router.post("/document")
+async def document(document: UploadFile = File(...), api_key: str = Depends(verify_api_key)):
+    """
+    Endpoint to process a document and convert it to knowledge.
+    Requires a valid API key for access.
+    """
+    logger.info("Processing document", extra={"document": document})
+    process_document(document.file.read())
+    return {"status": "success", "message": "Document processed successfully", "document_id": str(uuid4())}
